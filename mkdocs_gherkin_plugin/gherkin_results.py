@@ -22,19 +22,21 @@ class GherkinResults():
 
     def get_step_by_test_step_id(self, id):
         for step in self.steps:
-            if step.test_step_id == id:
+            if id in step.test_step_ids:
                 return step
 
     def get_step_by_pickle_step_id(self, id) -> GherkinStep:
         for step in self.steps:
-            if step.pickle_step_id == id:
+            if id in step.pickle_step_ids:
                 return step
 
     def add_pickle_step(self, pickle_step: PickleStep, ast_nodes, pickle: Pickle):
         step = self.get_step_by_pickle_step_id(pickle_step.id)
         step.set_ast_node_ids(pickle_step.ast_node_ids)
         step.set_text(pickle_step.text)
-        step.set_line(ast_nodes[0]['location']['line'])
+
+        for ast_node in ast_nodes:
+            step.add_line(ast_node['location']['line'])
         step.set_pickle_uri(pickle.uri)
 
     def add_step(self, step_definition: StepDefinition):
@@ -43,14 +45,14 @@ class GherkinResults():
     def add_test_case_step(self, test_case_step: TestStep):
         if test_case_step.step_definition_ids:
             step = self.get_step_by_definition_id(test_case_step.step_definition_ids[0])
-            step.set_test_step_id(test_case_step.id)
-            step.set_pickle_step_id(test_case_step.pickle_step_id)
+            step.add_test_step_id(test_case_step.id)
+            step.add_pickle_step_id(test_case_step.pickle_step_id)
 
-    def add_test_step_finished(self, test_step_finished: TestStepFinished):
-        step = self.get_step_by_test_step_id(test_step_finished.test_step_id)
+    def add_test_step_finished(self, test_step_finished):
+        step = self.get_step_by_test_step_id(test_step_finished['testStepId'])
         if step:
-            step.set_result(test_step_finished.test_step_result)
-            test_case = self.get_test_case_by_started_id(test_step_finished.test_case_started_id)
+            step.set_result(test_step_finished['testStepResult'])
+            test_case = self.get_test_case_by_started_id(test_step_finished['testCaseStartedId'])
             test_case.add_step(step)
 
     def get_test_case_by_id(self, test_case_id):

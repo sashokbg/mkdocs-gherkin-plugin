@@ -2,3 +2,6 @@ build
 dist
 .idea
 mkdocs_gherkin_plugin.egg-info/
+node_modules
+site
+__pycache__

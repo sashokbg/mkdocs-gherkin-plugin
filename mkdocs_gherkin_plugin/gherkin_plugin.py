@@ -2,7 +2,8 @@ import json
 import logging
 import pathlib
 
-from messages import StepDefinition, TestStep, TestStepFinished, PickleStep, TestCase, TestCaseStarted, Pickle
+from messages import StepDefinition, TestStep, TestStepFinished, PickleStep, TestCase, TestCaseStarted, Pickle, \
+    TestStepResult, ExceptionMessage
 from mkdocs import plugins
 
 from .gherkin_results import GherkinResults
@@ -23,11 +24,14 @@ class GherkinPlugin(plugins.BasePlugin):
 
         for step in self.results.steps:
             if step.matches_uri(docfile_path):
-                lines[step.line - 1] += f" {step.result.status}"
+                for line in step.lines:
+                    if str(step.result['status']) not in lines[line - 1]:
+                        lines[line - 1] += f" {step.result['status']}"
 
         for test_case in self.results.test_cases:
             if test_case.matches_uri(docfile_path):
-                lines[test_case.line - 1] += f" {test_case.status()}"
+                if str(test_case.status()) not in lines[test_case.line - 1]:
+                    lines[test_case.line - 1] += f" {test_case.status()}"
 
         result = ""
 
@@ -49,16 +53,6 @@ class GherkinPlugin(plugins.BasePlugin):
             # Iterate through each item in a list
             for item in obj:
                 self.search(item, key, value, results)
-
-    def pickle_to_ast_node(self, pickles, pickle_id):
-        # Flatten steps from each pickle and find the specific one by id
-        pickle = next((step for p in pickles for step in p['steps'] if p['id'] == pickle_id), None)
-        return pickle['astNodeIds'] if pickle else None
-
-    def ast_node_id_to_lines(self, ast_node_id, gherkin_document):
-        results = []
-        self.search(gherkin_document, 'id', ast_node_id, results)
-        return [r['location'] for r in results]
 
     def process_document(self, file_path):
         with open(file_path, 'r', encoding='utf-8') as file:
@@ -85,28 +79,28 @@ class GherkinPlugin(plugins.BasePlugin):
             if 'testStepStarted' in obj:
                 started_steps.append(obj['testStepStarted'])
             if 'testStepFinished' in obj:
-                finished_steps.append(TestStepFinished.model_validate(obj['testStepFinished']))
+                # TestStepFinished.model_config["extra"] = "allow"
+                # TestStepResult.model_config["extra"] = "allow"
+                # ExceptionMessage.model_config["extra"] = "allow"
+
+                # finished_steps.append(TestStepFinished.model_validate(obj['testStepFinished']))
+                finished_steps.append(obj['testStepFinished'])
             if 'gherkinDocument' in obj:
                 gherkin_document = obj['gherkinDocument']
 
-        test_steps = []
-
         results = GherkinResults()
+
+        for step_definition in step_definitions.values():
+            results.add_step(step_definition)
 
         for test_case in test_cases:
             results.add_test_case(test_case)
 
             for test_step in test_case.test_steps:
-                test_steps.append(TestStep.model_validate(test_step))
+                results.add_test_case_step(test_step)
 
         for test_case_started in started_test_cases:
             results.add_test_case_start(test_case_started)
-
-        for step_definition in step_definitions.values():
-            results.add_step(step_definition)
-
-        for test_step in test_steps:
-            results.add_test_case_step(test_step)
 
         for pickle in pickles:
             pickle_ast_nodes = []

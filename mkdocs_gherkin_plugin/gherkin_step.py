@@ -7,22 +7,22 @@ class GherkinStep():
         self.ast_node_ids = None
         self.text = None
         self.id = id
-        self.line = -1
+        self.lines = []
         self.result = ""
-        self.test_step_id = None
-        self.pickle_step_id = None
+        self.test_step_ids = []
+        self.pickle_step_ids = []
 
     def set_result(self, result):
         self.result = result
 
-    def set_line(self, line):
-        self.line = line
+    def add_line(self, line):
+        self.lines.append(line)
 
-    def set_test_step_id(self, id):
-        self.test_step_id = id
+    def add_test_step_id(self, id):
+        self.test_step_ids.append(id)
 
-    def set_pickle_step_id(self, id):
-        self.pickle_step_id = id
+    def add_pickle_step_id(self, id):
+        self.pickle_step_ids.append(id)
 
     def set_ast_node_ids(self, ast_node_ids):
         self.ast_node_ids = ast_node_ids
@@ -35,3 +35,6 @@ class GherkinStep():
 
     def matches_uri(self, other: Path):
         return Path(self.uri).resolve() == other.resolve()
+
+    def __str__(self):
+        return f"step[id={self.id}]"
