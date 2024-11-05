@@ -1,0 +1,4 @@
+build
+dist
+.idea
+mkdocs_gherkin_plugin.egg-info/
