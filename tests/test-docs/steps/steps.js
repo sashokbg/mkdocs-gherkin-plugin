@@ -7,5 +7,7 @@ When('I eat {int} cucumbers', function (int) {
 });
 
 Then('I should have {int} cucumbers', function (int) {
-    throw new Error("FAIL")
+    if (int == 15){
+        throw new Error("FAIL")
+    }
 });

@@ -2,8 +2,7 @@ import json
 import logging
 import pathlib
 
-from messages import StepDefinition, TestStep, TestStepFinished, PickleStep, TestCase, TestCaseStarted, Pickle, \
-    TestStepResult, ExceptionMessage
+from messages import StepDefinition, PickleStep, TestCase, TestCaseStarted, Pickle
 from mkdocs import plugins
 
 from .gherkin_results import GherkinResults
@@ -22,16 +21,16 @@ class GherkinPlugin(plugins.BasePlugin):
 
         docfile_path = pathlib.Path(page.file.abs_src_path)
 
-        for step in self.results.steps:
-            if step.matches_uri(docfile_path):
-                for line in step.lines:
-                    if str(step.result['status']) not in lines[line - 1]:
-                        lines[line - 1] += f" {step.result['status']}"
-
         for test_case in self.results.test_cases:
             if test_case.matches_uri(docfile_path):
-                if str(test_case.status()) not in lines[test_case.line - 1]:
-                    lines[test_case.line - 1] += f" {test_case.status()}"
+                for step in test_case.steps:
+                        for line in step.lines:
+                            # if str(step.result['status']) not in lines[line - 1]:
+                            lines[line - 1] += f" {step.result['status']}"
+
+
+                # if str(test_case.status()) not in lines[test_case.line - 1]:
+                lines[test_case.line - 1] += f" {test_case.status()}"
 
         result = ""
 
@@ -58,7 +57,7 @@ class GherkinPlugin(plugins.BasePlugin):
         with open(file_path, 'r', encoding='utf-8') as file:
             ndjson_objects = [json.loads(line) for line in file if line.strip()]
 
-        step_definitions = {}
+        step_definitions = []
         test_steps, test_cases = [], []
         pickles, finished_test_cases, started_test_cases, started_steps, finished_steps = [], [], [], [], []
         gherkin_document = None
@@ -69,7 +68,7 @@ class GherkinPlugin(plugins.BasePlugin):
             if 'pickle' in obj:
                 pickles.append(Pickle.model_validate(obj['pickle']))
             if 'stepDefinition' in obj:
-                step_definitions[obj['stepDefinition']['id']] = StepDefinition.model_validate(obj['stepDefinition'])
+                step_definitions.append(StepDefinition.model_validate(obj['stepDefinition']))
             if 'testCase' in obj:
                 test_cases.append(TestCase.model_validate(obj['testCase']))
             if 'testCaseFinished' in obj:
@@ -90,14 +89,14 @@ class GherkinPlugin(plugins.BasePlugin):
 
         results = GherkinResults()
 
-        for step_definition in step_definitions.values():
-            results.add_step(step_definition)
+        # for step_definition in step_definitions.values():
+        #     results.add_step(step_definition)
 
         for test_case in test_cases:
-            results.add_test_case(test_case)
+            results.add_test_case(test_case, step_definitions)
 
             for test_step in test_case.test_steps:
-                results.add_test_case_step(test_step)
+                results.add_test_case_step(test_case.id, test_step)
 
         for test_case_started in started_test_cases:
             results.add_test_case_start(test_case_started)

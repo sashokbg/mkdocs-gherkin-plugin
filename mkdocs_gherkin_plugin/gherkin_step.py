@@ -37,4 +37,4 @@ class GherkinStep():
         return Path(self.uri).resolve() == other.resolve()
 
     def __str__(self):
-        return f"step[id={self.id}]"
+        return f"step[id={self.id}, result={self.result}]"
