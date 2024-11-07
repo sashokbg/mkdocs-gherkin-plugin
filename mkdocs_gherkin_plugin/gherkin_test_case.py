@@ -15,6 +15,7 @@ class GherkinTestCase():
         self.id = id
         self.pickle_id = pickle_id
         self.steps: List[GherkinStep] = steps
+        self.name = ""
 
     def get_step_by_definition_id(self, id):
         for step in self.steps:
@@ -24,9 +25,8 @@ class GherkinTestCase():
 
     def get_step_by_test_step_id(self, id):
         for step in self.steps:
-            if id in step.test_step_ids:
+            if id == step.test_step_id:
                 return step
-
 
     def add_test_step_finished(self, test_step_finished):
         step = self.get_step_by_test_step_id(test_step_finished['testStepId'])
@@ -36,21 +36,24 @@ class GherkinTestCase():
 
     def add_pickle_step(self, pickle_step, ast_nodes, pickle):
         step = self.get_step_by_pickle_step_id(pickle_step.id)
-        step.set_ast_node_ids(pickle_step.ast_node_ids)
-        step.set_text(pickle_step.text)
 
-        for ast_node in ast_nodes:
-            step.add_line(ast_node['location']['line'])
-        step.set_pickle_uri(pickle.uri)
+        if step:
+            step.set_ast_node_ids(pickle_step.ast_node_ids)
+            step.set_text(pickle_step.text)
+
+            for ast_node in ast_nodes:
+                step.add_line(ast_node['location']['line'])
+            step.set_pickle_uri(pickle.uri)
 
     def add_step_attachment(self, test_step_attachment: Attachment):
         step = self.get_step_by_test_step_id(test_step_attachment.test_step_id)
 
-        step.add_attachment(test_step_attachment)
+        if step:
+            step.add_attachment(test_step_attachment)
 
     def get_step_by_pickle_step_id(self, id) -> GherkinStep:
         for step in self.steps:
-            if id in step.pickle_step_ids:
+            if id == step.pickle_step_id:
                 return step
 
     def set_test_case_started_id(self, id):
@@ -58,11 +61,8 @@ class GherkinTestCase():
 
     def add_test_case_step(self, test_case_step):
         step = self.get_step_by_definition_id(test_case_step.step_definition_ids[0])
-        step.add_test_step_id(test_case_step.id)
-        step.add_pickle_step_id(test_case_step.pickle_step_id)
-
-    def add_step(self, step: GherkinStep):
-        self.steps.append(step)
+        step.set_test_step_id(test_case_step.id)
+        step.set_pickle_step_id(test_case_step.pickle_step_id)
 
     def set_line(self, line):
         self.line = line
@@ -71,6 +71,8 @@ class GherkinTestCase():
         all_skipped = True
 
         for step in self.steps:
+            if not step.result:
+                return Status.undefined
             if step.result['status'] != Status.skipped.value:
                 all_skipped = False
             if step.result['status'] == Status.failed.value:
@@ -86,3 +88,9 @@ class GherkinTestCase():
 
     def set_uri(self, uri):
         self.uri = uri
+
+    def set_name(self, name):
+        self.name = name
+
+    def __str__(self):
+        return f"GherkinTestCase[id={self.id}, name={self.name}]"

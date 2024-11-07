@@ -13,9 +13,22 @@ Given('there are {int} cucumbers', async function (int) {
     }
 });
 
-When('I eat {int} cucumbers', async function (int) {
+When('I eat {int} cucumbers', function (int) {
 });
 
-Then('I should have {int} cucumbers', function (world, int) {
-    throw new Error("FAIL")
+Then('I should have {int} cucumbers', function (int) {
+    if (int == 7) {
+        throw new Error("FAIL")
+    }
 });
+
+Given('I work hard', function () {
+});
+
+When('The end of the month arrives', function () {
+});
+
+Then('I am payed well', function () {
+    throw Error("")
+});
+

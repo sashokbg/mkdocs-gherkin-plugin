@@ -26,8 +26,9 @@ class GherkinPlugin(plugins.BasePlugin):
                 for step in test_case.steps:
                     for line in step.lines:
                         lines[line - 1] += f" {step.result['status']}"
-                    for attachment in step.attachments:
-                        lines[step.lines[0]] += f"""\n
+                    if len(step.lines) == 1:
+                        for attachment in step.attachments:
+                            lines[step.lines[0]] += f"""\n
 ![Hello World](data:{attachment.media_type};{attachment.content_encoding},{attachment.body})\n
 """
 
@@ -42,15 +43,12 @@ class GherkinPlugin(plugins.BasePlugin):
 
     def search(self, obj, key, value, results):
         if isinstance(obj, dict):
-            # Check if the key exists at the current level
             if key in obj and obj[key] == value:
                 results.append(obj)
             else:
-                # Recursively search each key-value pair
                 for v in obj.values():
                     self.search(v, key, value, results)
         elif isinstance(obj, list):
-            # Iterate through each item in a list
             for item in obj:
                 self.search(item, key, value, results)
 
@@ -61,7 +59,7 @@ class GherkinPlugin(plugins.BasePlugin):
         step_definitions = []
         test_steps, test_cases = [], []
         pickles, finished_test_cases, started_test_cases, started_steps, finished_steps = [], [], [], [], []
-        gherkin_document = None
+        gherkin_documents = []
         attachments = []
 
         log.info("STARTING GHERKIN PLUGIN")
@@ -80,24 +78,18 @@ class GherkinPlugin(plugins.BasePlugin):
             if 'testStepStarted' in obj:
                 started_steps.append(obj['testStepStarted'])
             if 'testStepFinished' in obj:
-                # TestStepFinished.model_config["extra"] = "allow"
-                # TestStepResult.model_config["extra"] = "allow"
-                # ExceptionMessage.model_config["extra"] = "allow"
-
-                # finished_steps.append(TestStepFinished.model_validate(obj['testStepFinished']))
                 finished_steps.append(obj['testStepFinished'])
             if 'gherkinDocument' in obj:
-                gherkin_document = obj['gherkinDocument']
+                gherkin_documents.append(obj['gherkinDocument'])
             if 'attachment' in obj:
                 attachments.append(Attachment.model_validate(obj['attachment']))
 
         results = GherkinResults()
 
-        # for step_definition in step_definitions.values():
-        #     results.add_step(step_definition)
+        results.add_step_definitions(step_definitions)
 
         for test_case in test_cases:
-            results.add_test_case(test_case, step_definitions)
+            results.add_test_case(test_case)
 
             for test_step in test_case.test_steps:
                 results.add_test_case_step(test_case.id, test_step)
@@ -108,15 +100,21 @@ class GherkinPlugin(plugins.BasePlugin):
         for pickle in pickles:
             pickle_ast_nodes = []
             for astNodeId in pickle.ast_node_ids:
-                self.search(gherkin_document, "id", astNodeId, pickle_ast_nodes)
+                for gherkin_document in gherkin_documents:
+                    self.search(gherkin_document, "id", astNodeId, pickle_ast_nodes)
+
+            if not len(pickle_ast_nodes):
+                break
+
             results.add_test_case_pickle(pickle, pickle_ast_nodes)
 
-            for step in pickle.steps:
+            for pickle_step in pickle.steps:
                 ast_nodes = []
-                for astNodeId in step.ast_node_ids:
-                    self.search(gherkin_document, "id", astNodeId, ast_nodes)
+                for astNodeId in pickle_step.ast_node_ids:
+                    for gherkin_document in gherkin_documents:
+                        self.search(gherkin_document, "id", astNodeId, ast_nodes)
 
-                results.add_pickle_step(PickleStep.model_validate(step), ast_nodes, pickle)
+                results.add_pickle_step(PickleStep.model_validate(pickle_step), ast_nodes, pickle)
 
         for finished_step in finished_steps:
             results.add_test_step_finished(finished_step)

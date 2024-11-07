@@ -8,13 +8,19 @@ from .gherkin_test_case import GherkinTestCase
 
 class GherkinResults():
     def __init__(self):
-        # self.steps: List[GherkinStep] = []
+        self.steps: List[StepDefinition] = []
         self.test_cases: List[GherkinTestCase] = []
 
-    def add_test_case(self, test_case: TestCase, step_definitions):
-        steps = []
+    def add_step_definitions(self, step_definitions: List[StepDefinition]):
         for step_def in step_definitions:
-            steps.append(GherkinStep(id=step_def.id))
+            self.steps.append(GherkinStep(id=step_def.id))
+
+    def add_test_case(self, test_case: TestCase):
+        steps = []
+        for step in self.steps:
+            for test_case_step in test_case.test_steps:
+                if len(test_case_step.step_definition_ids) and step.id in test_case_step.step_definition_ids:
+                    steps.append(GherkinStep(step.id))
 
         case = GherkinTestCase(
             id=test_case.id,
@@ -61,6 +67,7 @@ class GherkinResults():
         test_case = self.get_test_case_by_pickle_id(pickle.id)
         test_case.set_line(ast_node[0]['location']['line'])
         test_case.set_uri(pickle.uri)
+        test_case.set_name(pickle.name)
 
     def add_test_case_start(self, test_case_started: TestCaseStarted):
         test_case = self.get_test_case_by_id(test_case_started.test_case_id)
