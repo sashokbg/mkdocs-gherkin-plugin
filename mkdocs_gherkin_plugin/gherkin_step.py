@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from messages import Attachment
+
 
 class GherkinStep():
     def __init__(self, id):
@@ -11,6 +13,7 @@ class GherkinStep():
         self.result = ""
         self.test_step_ids = []
         self.pickle_step_ids = []
+        self.attachments: List[Attachment] = []
 
     def set_result(self, result):
         self.result = result
@@ -32,6 +35,9 @@ class GherkinStep():
 
     def set_pickle_uri(self, uri):
         self.uri = uri
+
+    def add_attachment(self, attachment: Attachment):
+        self.attachments.append(attachment)
 
     def matches_uri(self, other: Path):
         return Path(self.uri).resolve() == other.resolve()

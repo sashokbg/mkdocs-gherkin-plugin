@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import List
 
-from messages import Status
+from messages import Status, Attachment
 
 from .gherkin_step import GherkinStep
 
@@ -43,6 +43,10 @@ class GherkinTestCase():
             step.add_line(ast_node['location']['line'])
         step.set_pickle_uri(pickle.uri)
 
+    def add_step_attachment(self, test_step_attachment: Attachment):
+        step = self.get_step_by_test_step_id(test_step_attachment.test_step_id)
+
+        step.add_attachment(test_step_attachment)
 
     def get_step_by_pickle_step_id(self, id) -> GherkinStep:
         for step in self.steps:

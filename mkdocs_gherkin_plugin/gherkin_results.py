@@ -1,6 +1,6 @@
 from typing import List
 
-from messages import StepDefinition, TestStep, TestStepFinished, PickleStep, Pickle, TestCase, TestCaseStarted
+from messages import StepDefinition, TestStep, TestStepFinished, PickleStep, Pickle, TestCase, TestCaseStarted, Attachment
 
 from .gherkin_step import GherkinStep
 from .gherkin_test_case import GherkinTestCase
@@ -43,6 +43,10 @@ class GherkinResults():
 
         case.add_test_step_finished(test_step_finished)
 
+    def add_test_step_attachment(self, test_step_attachment: Attachment):
+        case = self.get_test_case_by_started_id(test_step_attachment.test_case_started_id)
+        case.add_step_attachment(test_step_attachment)
+
     def get_test_case_by_id(self, test_case_id) -> GherkinTestCase:
         for test_case in self.test_cases:
             if test_case.id == test_case_id:
@@ -62,7 +66,7 @@ class GherkinResults():
         test_case = self.get_test_case_by_id(test_case_started.test_case_id)
         test_case.set_test_case_started_id(test_case_started.id)
 
-    def get_test_case_by_started_id(self, test_case_started_id):
+    def get_test_case_by_started_id(self, test_case_started_id) -> GherkinTestCase:
         for test_case in self.test_cases:
             if test_case.test_case_started_id == test_case_started_id:
                 return test_case

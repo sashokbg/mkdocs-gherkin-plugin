@@ -2,7 +2,7 @@ import json
 import logging
 import pathlib
 
-from messages import StepDefinition, PickleStep, TestCase, TestCaseStarted, Pickle
+from messages import StepDefinition, PickleStep, TestCase, TestCaseStarted, Pickle, Attachment
 from mkdocs import plugins
 
 from .gherkin_results import GherkinResults
@@ -24,12 +24,13 @@ class GherkinPlugin(plugins.BasePlugin):
         for test_case in self.results.test_cases:
             if test_case.matches_uri(docfile_path):
                 for step in test_case.steps:
-                        for line in step.lines:
-                            # if str(step.result['status']) not in lines[line - 1]:
-                            lines[line - 1] += f" {step.result['status']}"
+                    for line in step.lines:
+                        lines[line - 1] += f" {step.result['status']}"
+                    for attachment in step.attachments:
+                        lines[step.lines[0]] += f"""\n
+![Hello World](data:{attachment.media_type};{attachment.content_encoding},{attachment.body})\n
+"""
 
-
-                # if str(test_case.status()) not in lines[test_case.line - 1]:
                 lines[test_case.line - 1] += f" {test_case.status()}"
 
         result = ""
@@ -61,6 +62,7 @@ class GherkinPlugin(plugins.BasePlugin):
         test_steps, test_cases = [], []
         pickles, finished_test_cases, started_test_cases, started_steps, finished_steps = [], [], [], [], []
         gherkin_document = None
+        attachments = []
 
         log.info("STARTING GHERKIN PLUGIN")
 
@@ -86,6 +88,8 @@ class GherkinPlugin(plugins.BasePlugin):
                 finished_steps.append(obj['testStepFinished'])
             if 'gherkinDocument' in obj:
                 gherkin_document = obj['gherkinDocument']
+            if 'attachment' in obj:
+                attachments.append(Attachment.model_validate(obj['attachment']))
 
         results = GherkinResults()
 
@@ -116,5 +120,8 @@ class GherkinPlugin(plugins.BasePlugin):
 
         for finished_step in finished_steps:
             results.add_test_step_finished(finished_step)
+
+        for attachment in attachments:
+            results.add_test_step_attachment(attachment)
 
         self.results = results
