@@ -3,14 +3,18 @@ import logging
 import pathlib
 
 from messages import StepDefinition, PickleStep, TestCase, TestCaseStarted, Pickle, Attachment
-from mkdocs import plugins
+from mkdocs import plugins, config
 
 from .gherkin_results import GherkinResults
 
 log = logging.getLogger(f"mkdocs.plugins.{__name__}")
 
 
-class GherkinPlugin(plugins.BasePlugin):
+class GherkinPluginConfig(config.base.Config):
+    show_attachments = config.config_options.Type(bool, default=True)
+
+
+class GherkinPlugin(plugins.BasePlugin[GherkinPluginConfig]):
 
     def __init__(self, *args, **kwargs):
         self.results: GherkinResults = None
@@ -24,13 +28,13 @@ class GherkinPlugin(plugins.BasePlugin):
         for test_case in self.results.test_cases:
             if test_case.matches_uri(docfile_path):
                 for step in test_case.steps:
-                    for attachment in step.attachments:
-                        lines[step.lines[0]] += f"""\n
-![Hello World](data:{attachment.media_type};{attachment.content_encoding},{attachment.body})\n"""
                     for line in step.lines:
-                        lines[line - 1] += f" {step.result['status']}"
+                        lines[line - 1] += f" {step.result()}"
 
                 lines[test_case.line - 1] += f" {test_case.status()}"
+
+        if self.config['show_attachments']:
+            self.add_attachments(docfile_path, lines)
 
         result = ""
 
@@ -38,6 +42,15 @@ class GherkinPlugin(plugins.BasePlugin):
             result += line + "\n"
 
         return result
+
+    def add_attachments(self, docfile_path, lines):
+        for test_case in self.results.test_cases:
+            if test_case.matches_uri(docfile_path):
+                for step in test_case.steps:
+                    for attachment in step.attachments:
+                        lines[step.lines[0]] += f"""\n\n
+??? Screenshot
+    ![{attachment.file_name}](data:{attachment.media_type};{attachment.content_encoding},{attachment.body})"""
 
     def search(self, obj, key, value, results):
         if isinstance(obj, dict):

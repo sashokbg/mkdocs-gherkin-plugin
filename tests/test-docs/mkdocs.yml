@@ -6,4 +6,10 @@ nav:
   - "Undefined Feature": undefined.feature.md
 
 plugins:
-  - gherkin-plugin
+  - gherkin-plugin:
+      show_attachments: True
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences

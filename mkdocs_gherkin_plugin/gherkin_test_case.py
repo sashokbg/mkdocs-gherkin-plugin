@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import List
 
 from messages import Status, Attachment
+from mkdocs_gherkin_plugin.status_formatter import format_status
 
 from .gherkin_step import GherkinStep
 
@@ -70,18 +71,23 @@ class GherkinTestCase():
     def status(self):
         all_skipped = True
 
+        result = None
+
         for step in self.steps:
-            if not step.result:
-                return Status.undefined
-            if step.result['status'] != Status.skipped.value:
+            if not step.result():
+                result = Status.undefined
+            if step.result() != Status.skipped.value:
                 all_skipped = False
-            if step.result['status'] == Status.failed.value:
-                return Status.failed
+            if step.result() == Status.failed.value:
+                result = Status.failed
 
         if all_skipped:
-            return Status.skipped
+            result = Status.skipped
 
-        return Status.passed
+        else:
+            result = Status.passed
+
+        return format_status(result)
 
     def matches_uri(self, other: Path):
         return Path(self.uri).resolve() == other.resolve()

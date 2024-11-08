@@ -1,6 +1,7 @@
 build
 dist
 .idea
+*.ndjson
 mkdocs_gherkin_plugin.egg-info/
 node_modules
 site
