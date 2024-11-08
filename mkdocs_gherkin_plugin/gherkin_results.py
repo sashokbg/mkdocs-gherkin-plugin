@@ -19,7 +19,7 @@ class GherkinResults():
         steps = []
         for step in self.steps:
             for test_case_step in test_case.test_steps:
-                if len(test_case_step.step_definition_ids) and step.id in test_case_step.step_definition_ids:
+                if test_case_step.step_definition_ids and len(test_case_step.step_definition_ids) and step.id in test_case_step.step_definition_ids:
                     steps.append(GherkinStep(step.id))
 
         case = GherkinTestCase(
