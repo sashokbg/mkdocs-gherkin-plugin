@@ -27,6 +27,10 @@ class GherkinPlugin(plugins.BasePlugin[GherkinPluginConfig]):
 
         for test_case in self.results.test_cases:
             if test_case.matches_uri(docfile_path):
+                for n, line in enumerate(lines):
+                    if "<" in line:
+                        lines[n] = lines[n].replace("<", "&lt;")
+
                 for step in test_case.steps:
                     for line in step.lines:
                         lines[line - 1] += f" {step.result()}"
