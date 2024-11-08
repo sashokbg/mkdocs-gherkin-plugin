@@ -24,13 +24,11 @@ class GherkinPlugin(plugins.BasePlugin):
         for test_case in self.results.test_cases:
             if test_case.matches_uri(docfile_path):
                 for step in test_case.steps:
+                    for attachment in step.attachments:
+                        lines[step.lines[0]] += f"""\n
+![Hello World](data:{attachment.media_type};{attachment.content_encoding},{attachment.body})\n"""
                     for line in step.lines:
                         lines[line - 1] += f" {step.result['status']}"
-                    if len(step.lines) == 1:
-                        for attachment in step.attachments:
-                            lines[step.lines[0]] += f"""\n
-![Hello World](data:{attachment.media_type};{attachment.content_encoding},{attachment.body})\n
-"""
 
                 lines[test_case.line - 1] += f" {test_case.status()}"
 
