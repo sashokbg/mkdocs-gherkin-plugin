@@ -1,6 +1,7 @@
 from pathlib import Path
+from typing import List
 
-from messages import Attachment, Status
+from messages import Attachment
 from .status_formatter import format_status
 
 

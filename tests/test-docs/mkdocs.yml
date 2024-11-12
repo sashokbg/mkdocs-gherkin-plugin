@@ -2,6 +2,7 @@ site_name: My Docs
 
 nav:
   - "Classic Feature": classic.feature.md
+  - "Screenshot Feature": screenshot.feature.md
   - "Template Feature": template.feature.md
   - "Undefined Feature": undefined.feature.md
 

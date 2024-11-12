@@ -32,3 +32,21 @@ Then('I am payed well', function () {
     throw Error("")
 });
 
+Given('I play a game', function () {
+});
+
+
+When('I take a screenshot', async function () {
+    const stream = fs.createReadStream('./prince_of_persia.png');
+
+    await this.attach(stream, {mediaType: 'image/png'});
+});
+
+
+Then('my screenshot is shown', async function () {
+    const stream = fs.createReadStream('./prince_of_persia2.png');
+
+    await this.attach(stream, {mediaType: 'image/png'});
+});
+
+
