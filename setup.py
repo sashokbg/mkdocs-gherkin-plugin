@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='mkdocs-gherkin-plugin',
-    version="0.0.4",
+    version="0.0.5",
     description="",
     author="Aleksandar KIRILOV",
     packages=find_packages(),

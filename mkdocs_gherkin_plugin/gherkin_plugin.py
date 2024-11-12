@@ -54,7 +54,7 @@ class GherkinPlugin(plugins.BasePlugin[GherkinPluginConfig]):
                     for attachment in step.attachments:
                         lines[step.lines[0]] += f"""\n\n
 ??? Screenshot
-    ![{attachment.file_name}](data:{attachment.media_type};{attachment.content_encoding},{attachment.body})"""
+    ![{attachment.file_name}](data:{attachment.media_type};BASE64,{attachment.body})"""
 
     def search(self, obj, key, value, results):
         if isinstance(obj, dict):
