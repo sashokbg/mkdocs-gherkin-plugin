@@ -1,0 +1,31 @@
+[project]
+name = "mkdocs-gherkin-plugin"
+version = "0.0.7"
+authors = [
+    { name="Aleksandar KIRILOV", email="alexander.n.kirilov@gmail.com" },
+]
+description = "An Mkdocs Plugin that Injects Cucumber Results in your Living Documentation"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[tool.setuptools]
+include-package-data = true
+
+[project.entry-points."mkdocs.plugins"]
+gherkin-plugin = "mkdocs_gherkin_plugin:GherkinPlugin"
+
+[project.urls]
+Homepage = "https://github.com/sashokbg/mkdocs-gherkin-plugin"
+Issues = "https://github.com/sashokbg/mkdocs-gherkin-plugin/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]  # list of folders that contain the packages (["."] by default)
+include = ["mkdocs_gherkin_plugin"]  # package names should match these glob patterns (["*"] by default)
+exclude = []  # exclude packages matching these glob patterns (empty by default)
+namespaces = false  # to disable scanning PEP 420 namespaces (true by default)
+
