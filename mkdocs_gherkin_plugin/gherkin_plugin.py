@@ -52,7 +52,7 @@ class GherkinPlugin(plugins.BasePlugin[GherkinPluginConfig]):
             if test_case.matches_uri(docfile_path):
                 for step in test_case.steps:
                     for attachment in step.attachments:
-                        lines[step.lines[0]] += f"""\n\n
+                        lines[step.lines[0]-1] += f"""
 ??? Screenshot
     ![{attachment.file_name}](data:{attachment.media_type};BASE64,{attachment.body})"""
 

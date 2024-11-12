@@ -8,7 +8,7 @@ def format_status(status):
         return "✖"
 
     if status == Status.skipped.value or status == Status.skipped:
-        return ""
+        return "Skipped"
 
     if status == Status.undefined.value or status == Status.undefined:
         return "❔"

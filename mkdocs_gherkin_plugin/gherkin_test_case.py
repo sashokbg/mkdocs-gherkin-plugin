@@ -73,19 +73,21 @@ class GherkinTestCase():
 
         result = None
 
-        for step in self.steps:
-            if not step.result():
-                result = Status.undefined
-            if step.result() != Status.skipped.value:
-                all_skipped = False
-            if step.result() == Status.failed.value:
-                result = Status.failed
-
-        if all_skipped:
+        if not len(self.steps):
             result = Status.skipped
-
         else:
-            result = Status.passed
+            for step in self.steps:
+                if not step.result():
+                    result = Status.undefined
+                if step.result() != Status.skipped.value:
+                    all_skipped = False
+                if step.result() == Status.failed.value:
+                    result = Status.failed
+
+            if all_skipped:
+                result = Status.skipped
+            else:
+                result = Status.passed
 
         return format_status(result)
 
