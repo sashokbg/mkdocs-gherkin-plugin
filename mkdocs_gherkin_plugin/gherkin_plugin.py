@@ -4,6 +4,7 @@ import pathlib
 
 from messages import StepDefinition, PickleStep, TestCase, TestCaseStarted, Pickle, Attachment
 from mkdocs import plugins, config
+from mkdocs.config.defaults import MkDocsConfig
 
 from .gherkin_results import GherkinResults
 
@@ -12,13 +13,18 @@ log = logging.getLogger(f"mkdocs.plugins.{__name__}")
 
 class GherkinPluginConfig(config.base.Config):
     show_attachments = config.config_options.Type(bool, default=True)
+    messages_path = config.config_options.Type(str, default="gherkin_messages.ndjson")
 
 
 class GherkinPlugin(plugins.BasePlugin[GherkinPluginConfig]):
 
     def __init__(self, *args, **kwargs):
         self.results: GherkinResults = None
-        self.process_document("gherkin_messages.ndjson")
+
+    def on_config(self, config: MkDocsConfig) -> MkDocsConfig | None:
+        message_file = self.config['messages_path']
+        self.process_document(message_file)
+
 
     def on_page_markdown(self, markdown, page, config, files):
         lines = markdown.splitlines()

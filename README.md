@@ -46,8 +46,20 @@ To run the example, you need to:
 In your mkdocs.yaml add the following:
 ```yaml
 plugins:
-- gherkin-plugin:
+- gherkin-plugin
+```
+
+## Configuration
+
+- **show_attachments** - Boolean value that controls if the file attachements are shown in the final result. Defaults to True
+
+- **messages_path** - Location where to load the cucumber messages ndjson. Defaults to "gherkin_messages.ndjson"
+
+Example:
+```yaml
+plugins:
   show_attachments: True
+  messages_path: "gherkin_messages.ndjson"
 ```
 
 ### Dependencies

@@ -9,6 +9,7 @@ nav:
 plugins:
   - gherkin-plugin:
       show_attachments: True
+      messages_path: "gherkin_messages.ndjson"
 
 markdown_extensions:
   - admonition
