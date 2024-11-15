@@ -2,7 +2,6 @@ from pathlib import Path
 from typing import List
 
 from messages import Status, Attachment
-from mkdocs_gherkin_plugin.status_formatter import format_status
 
 from .gherkin_step import GherkinStep
 
@@ -32,8 +31,7 @@ class GherkinTestCase():
     def add_test_step_finished(self, test_step_finished):
         step = self.get_step_by_test_step_id(test_step_finished['testStepId'])
         if step:
-            step.set_result(test_step_finished['testStepResult'])
-            # test_case.add_step(step)
+            step.set_status(Status[test_step_finished['testStepResult']['status'].lower()])
 
     def add_pickle_step(self, pickle_step, ast_nodes, pickle):
         step = self.get_step_by_pickle_step_id(pickle_step.id)
@@ -70,26 +68,30 @@ class GherkinTestCase():
 
     def status(self):
         all_skipped = True
-
-        result = None
+        all_undefined = True
+        has_failed = False
 
         if not len(self.steps):
+            return Status.skipped
+
+        for step in self.steps:
+            if step.status() != Status.skipped:
+                all_skipped = False
+            if step.status() != Status.undefined:
+                all_undefined = False
+            if step.status() == Status.failed:
+                has_failed = True
+
+        if all_skipped:
             result = Status.skipped
+        elif all_undefined:
+            result = Status.undefined
+        elif has_failed:
+            result = Status.failed
         else:
-            for step in self.steps:
-                if not step.result():
-                    result = Status.undefined
-                if step.result() != Status.skipped.value:
-                    all_skipped = False
-                if step.result() == Status.failed.value:
-                    result = Status.failed
+            result = Status.passed
 
-            if all_skipped:
-                result = Status.skipped
-            else:
-                result = Status.passed
-
-        return format_status(result)
+        return result
 
     def matches_uri(self, other: Path):
         return Path(self.uri).resolve() == other.resolve()

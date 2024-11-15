@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import List
 
-from messages import Attachment
+from messages import Attachment, Status
 from .status_formatter import format_status
 
 
@@ -12,21 +12,16 @@ class GherkinStep():
         self.text = None
         self.id = id
         self.lines = []
-        self._result = ""
+        self._status: Status = Status.undefined
         self.test_step_id = None
         self.pickle_step_id = None
         self.attachments: List[Attachment] = []
 
-    def result(self):
-        if not self._result:
-            return None
+    def status(self):
+        return self._status
 
-        status = self._result['status']
-        return format_status(status)
-
-
-    def set_result(self, result):
-        self._result = result
+    def set_status(self, result: Status):
+        self._status = result
 
     def add_line(self, line):
         if line not in self.lines:
@@ -54,4 +49,4 @@ class GherkinStep():
         return Path(self.uri).resolve() == other.resolve()
 
     def __str__(self):
-        return f"step[id={self.id}, result={self._result}, text={self.text}, lines={self.lines}, attachments={self.attachments}]"
+        return f"step[id={self.id}, result={self._status}, text={self.text}, lines={self.lines}, attachments={self.attachments}]"

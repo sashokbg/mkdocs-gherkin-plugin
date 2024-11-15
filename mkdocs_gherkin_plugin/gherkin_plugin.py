@@ -7,6 +7,7 @@ from mkdocs import plugins, config
 from mkdocs.config.defaults import MkDocsConfig
 
 from .gherkin_results import GherkinResults
+from .status_formatter import format_status
 
 log = logging.getLogger(f"mkdocs.plugins.{__name__}")
 
@@ -25,7 +26,6 @@ class GherkinPlugin(plugins.BasePlugin[GherkinPluginConfig]):
         message_file = self.config['messages_path']
         self.process_document(message_file)
 
-
     def on_page_markdown(self, markdown, page, config, files):
         lines = markdown.splitlines()
 
@@ -39,9 +39,9 @@ class GherkinPlugin(plugins.BasePlugin[GherkinPluginConfig]):
 
                 for step in test_case.steps:
                     for line in step.lines:
-                        lines[line - 1] += f" {step.result()}"
+                        lines[line - 1] += f" {format_status(step.status())}"
 
-                lines[test_case.line - 1] += f" {test_case.status()}"
+                lines[test_case.line - 1] += f" {format_status(test_case.status())}"
 
         if self.config['show_attachments']:
             self.add_attachments(docfile_path, lines)
@@ -58,7 +58,7 @@ class GherkinPlugin(plugins.BasePlugin[GherkinPluginConfig]):
             if test_case.matches_uri(docfile_path):
                 for step in test_case.steps:
                     for attachment in step.attachments:
-                        lines[step.lines[0]-1] += f"""
+                        lines[step.lines[0] - 1] += f"""
 ??? Screenshot
     ![{attachment.file_name}](data:{attachment.media_type};BASE64,{attachment.body})"""
 

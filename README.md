@@ -11,17 +11,17 @@ It works by parsing the Cucumber messages, generated during the tests, and injec
 
 - Whenever a test case has passed, a checkmark will be added next to it.
 
-  ![images/screenshot1.png](images/screenshot_1.png)
+  ![images/screenshot1.png](https://github.com/sashokbg/mkdocs-gherkin-plugin/raw/main/images/screenshot_1.png)
 
 - If a test case has failed a cross will be added.
 
 - Screenshot attachments
 
-  ![images/screenshot2.png](images/screenshot_2.png)
+  ![images/screenshot2.png](https://github.com/sashokbg/mkdocs-gherkin-plugin/raw/main/images/screenshot_2.png)
 
 ## Examples
 
-Check the configuration example under tests/test_docs.
+Check the configuration example under _example_ directory.
 
 It configures both cucumber-js and mkdocs in the same directory.
 
