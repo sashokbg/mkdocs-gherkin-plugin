@@ -1,9 +1,13 @@
+import logging
 from typing import List
 
-from messages import StepDefinition, TestStep, TestStepFinished, PickleStep, Pickle, TestCase, TestCaseStarted, Attachment
+from messages import StepDefinition, TestStep, PickleStep, Pickle, TestCase, TestCaseStarted, \
+    Attachment
 
 from .gherkin_step import GherkinStep
 from .gherkin_test_case import GherkinTestCase
+
+log = logging.getLogger(f"mkdocs.plugins.{__name__}")
 
 
 class GherkinResults():
@@ -19,7 +23,8 @@ class GherkinResults():
         steps = []
         for step in self.steps:
             for test_case_step in test_case.test_steps:
-                if test_case_step.step_definition_ids and len(test_case_step.step_definition_ids) and step.id in test_case_step.step_definition_ids:
+                if test_case_step.step_definition_ids and len(
+                        test_case_step.step_definition_ids) and step.id in test_case_step.step_definition_ids:
                     steps.append(GherkinStep(step.id))
 
         case = GherkinTestCase(
@@ -33,7 +38,6 @@ class GherkinResults():
         case = self.get_test_case_by_pickle_id(pickle.id)
 
         case.add_pickle_step(pickle_step, ast_nodes, pickle)
-
 
     # def add_step(self, step_definition: StepDefinition):
     #     self.steps.append(GherkinStep(id=step_definition.id))

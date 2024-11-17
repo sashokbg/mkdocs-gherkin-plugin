@@ -119,6 +119,10 @@ class GherkinPlugin(plugins.BasePlugin[GherkinPluginConfig]):
             results.add_test_case_start(test_case_started)
 
         for pickle in pickles:
+            if not results.get_test_case_by_pickle_id(pickle.id):
+                log.warning("No test case found for pickle %s", pickle.id)
+                continue
+
             pickle_ast_nodes = []
             for astNodeId in pickle.ast_node_ids:
                 for gherkin_document in gherkin_documents:
