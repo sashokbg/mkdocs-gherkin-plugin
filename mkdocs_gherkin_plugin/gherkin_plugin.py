@@ -1,5 +1,6 @@
 import json
 import logging
+import os.path
 import pathlib
 
 from messages import StepDefinition, PickleStep, TestCase, TestCaseStarted, Pickle, Attachment
@@ -14,19 +15,28 @@ log = logging.getLogger(f"mkdocs.plugins.{__name__}")
 
 class GherkinPluginConfig(config.base.Config):
     show_attachments = config.config_options.Type(bool, default=True)
+    show_results = config.config_options.Type(bool, default=True)
     messages_path = config.config_options.Type(str, default="gherkin_messages.ndjson")
 
 
 class GherkinPlugin(plugins.BasePlugin[GherkinPluginConfig]):
 
     def __init__(self, *args, **kwargs):
-        self.results: GherkinResults = None
+        log.info("Loading Gherkin plugin")
+        self.results: GherkinResults is None
 
     def on_config(self, config: MkDocsConfig) -> MkDocsConfig | None:
         message_file = self.config['messages_path']
-        self.process_document(message_file)
+        if os.path.isfile(message_file) and os.path.exists(message_file):
+            self.process_document(message_file)
+        else:
+            log.warning("No gherkin results found in %s. Skipping plugin execution.", message_file)
 
     def on_page_markdown(self, markdown, page, config, files):
+        message_file = self.config['messages_path']
+        if not os.path.isfile(message_file) or not os.path.exists(message_file):
+            return markdown
+
         lines = markdown.splitlines()
 
         docfile_path = pathlib.Path(page.file.abs_src_path)
@@ -37,11 +47,12 @@ class GherkinPlugin(plugins.BasePlugin[GherkinPluginConfig]):
                     if "<" in line:
                         lines[n] = lines[n].replace("<", "&lt;")
 
-                for step in test_case.steps:
-                    for line in step.lines:
-                        lines[line - 1] += f" {format_status(step.status())}"
+                if self.config['show_results']:
+                    for step in test_case.steps:
+                        for line in step.lines:
+                            lines[line - 1] += f" {format_status(step.status())}"
 
-                lines[test_case.line - 1] += f" {format_status(test_case.status())}"
+                    lines[test_case.line - 1] += f" {format_status(test_case.status())}"
 
         if self.config['show_attachments']:
             self.add_attachments(docfile_path, lines)
@@ -82,8 +93,6 @@ class GherkinPlugin(plugins.BasePlugin[GherkinPluginConfig]):
         pickles, finished_test_cases, started_test_cases, started_steps, finished_steps = [], [], [], [], []
         gherkin_documents = []
         attachments = []
-
-        log.info("STARTING GHERKIN PLUGIN")
 
         for obj in ndjson_objects:
             if 'pickle' in obj:

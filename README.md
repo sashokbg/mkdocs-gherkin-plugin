@@ -51,6 +51,8 @@ plugins:
 
 ## Configuration
 
+- **show_results** - Boolean value that controls if the test results are shown next to each feature and step. Defaults to True
+
 - **show_attachments** - Boolean value that controls if the file attachements are shown in the final result. Defaults to True
 
 - **messages_path** - Location where to load the cucumber messages ndjson. Defaults to "gherkin_messages.ndjson"
