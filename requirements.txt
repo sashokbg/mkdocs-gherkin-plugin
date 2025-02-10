@@ -7,7 +7,6 @@ charset-normalizer==3.4.0
 click==8.1.7
 colorama==0.4.6
 cryptography==43.0.3
-cuke-messages==0.1.0
 docutils==0.21.2
 ghp-import==2.1.0
 idna==3.10

@@ -3,7 +3,6 @@ import logging
 import os.path
 import pathlib
 
-from messages import StepDefinition, PickleStep, TestCase, TestCaseStarted, Pickle, Attachment
 from mkdocs import plugins, config
 from mkdocs.config.defaults import MkDocsConfig
 
@@ -23,7 +22,7 @@ class GherkinPlugin(plugins.BasePlugin[GherkinPluginConfig]):
 
     def __init__(self, *args, **kwargs):
         log.info("Loading Gherkin plugin")
-        self.results: GherkinResults is None
+        self.results: GherkinResults | None = None
 
     def on_config(self, config: MkDocsConfig) -> MkDocsConfig | None:
         message_file = self.config['messages_path']
@@ -71,7 +70,7 @@ class GherkinPlugin(plugins.BasePlugin[GherkinPluginConfig]):
                     for attachment in step.attachments:
                         lines[step.lines[0] - 1] += f"""
 ??? Screenshot
-    ![{attachment.file_name}](data:{attachment.media_type};BASE64,{attachment.body})"""
+    ![{attachment.get("fileName")}](data:{attachment.get("mediaType")};BASE64,{attachment.get("body")})"""
 
     def search(self, obj, key, value, results):
         if isinstance(obj, dict):
@@ -96,15 +95,15 @@ class GherkinPlugin(plugins.BasePlugin[GherkinPluginConfig]):
 
         for obj in ndjson_objects:
             if 'pickle' in obj:
-                pickles.append(Pickle.model_validate(obj['pickle']))
+                pickles.append(obj['pickle'])
             if 'stepDefinition' in obj:
-                step_definitions.append(StepDefinition.model_validate(obj['stepDefinition']))
+                step_definitions.append(obj['stepDefinition'])
             if 'testCase' in obj:
-                test_cases.append(TestCase.model_validate(obj['testCase']))
+                test_cases.append(obj['testCase'])
             if 'testCaseFinished' in obj:
                 finished_test_cases.append(obj['testCaseFinished'])
             if 'testCaseStarted' in obj:
-                started_test_cases.append(TestCaseStarted.model_validate(obj['testCaseStarted']))
+                started_test_cases.append(obj['testCaseStarted'])
             if 'testStepStarted' in obj:
                 started_steps.append(obj['testStepStarted'])
             if 'testStepFinished' in obj:
@@ -112,7 +111,7 @@ class GherkinPlugin(plugins.BasePlugin[GherkinPluginConfig]):
             if 'gherkinDocument' in obj:
                 gherkin_documents.append(obj['gherkinDocument'])
             if 'attachment' in obj:
-                attachments.append(Attachment.model_validate(obj['attachment']))
+                attachments.append(obj['attachment'])
 
         results = GherkinResults()
 
@@ -121,19 +120,19 @@ class GherkinPlugin(plugins.BasePlugin[GherkinPluginConfig]):
         for test_case in test_cases:
             results.add_test_case(test_case)
 
-            for test_step in test_case.test_steps:
-                results.add_test_case_step(test_case.id, test_step)
+            for test_step in test_case.get("testSteps"):
+                results.add_test_case_step(test_case.get("id"), test_step)
 
         for test_case_started in started_test_cases:
             results.add_test_case_start(test_case_started)
 
         for pickle in pickles:
-            if not results.get_test_case_by_pickle_id(pickle.id):
-                log.warning("No test case found for pickle %s", pickle.id)
+            if not results.get_test_case_by_pickle_id(pickle.get("id")):
+                log.warning("No test case found for pickle %s", pickle.get("id"))
                 continue
 
             pickle_ast_nodes = []
-            for astNodeId in pickle.ast_node_ids:
+            for astNodeId in pickle.get("astNodeIds"):
                 for gherkin_document in gherkin_documents:
                     self.search(gherkin_document, "id", astNodeId, pickle_ast_nodes)
 
@@ -142,13 +141,13 @@ class GherkinPlugin(plugins.BasePlugin[GherkinPluginConfig]):
 
             results.add_test_case_pickle(pickle, pickle_ast_nodes)
 
-            for pickle_step in pickle.steps:
+            for pickle_step in pickle.get("steps"):
                 ast_nodes = []
-                for astNodeId in pickle_step.ast_node_ids:
+                for astNodeId in pickle_step.get("astNodeIds"):
                     for gherkin_document in gherkin_documents:
                         self.search(gherkin_document, "id", astNodeId, ast_nodes)
 
-                results.add_pickle_step(PickleStep.model_validate(pickle_step), ast_nodes, pickle)
+                results.add_pickle_step(pickle_step, ast_nodes, pickle)
 
         for finished_step in finished_steps:
             results.add_test_step_finished(finished_step)

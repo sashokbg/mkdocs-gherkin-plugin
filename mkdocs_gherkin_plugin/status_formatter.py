@@ -1,16 +1,14 @@
-from messages import Status
-
 def format_status(status):
-    if status == Status.passed.value or status == Status.passed:
+    if status == "PASSED" or status == "PASSED":
         return "✔"
 
-    if status == Status.failed.value or status == Status.failed:
+    if status == "FAILED" or status == "FAILED":
         return "✖"
 
-    if status == Status.skipped.value or status == Status.skipped:
+    if status == "SKIPPED" or status == "SKIPPED":
         return "Skipped"
 
-    if status == Status.undefined.value or status == Status.undefined:
+    if status == "UNDEFINED" or status == "UNDEFINED":
         return "❔"
 
     return status
