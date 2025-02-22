@@ -16,6 +16,7 @@ class GherkinPluginConfig(config.base.Config):
     show_attachments = config.config_options.Type(bool, default=True)
     show_results = config.config_options.Type(bool, default=True)
     messages_path = config.config_options.Type(str, default="gherkin_messages.ndjson")
+    tests_root_path = config.config_options.Type(str)
 
 
 class GherkinPlugin(plugins.BasePlugin[GherkinPluginConfig]):
@@ -26,12 +27,25 @@ class GherkinPlugin(plugins.BasePlugin[GherkinPluginConfig]):
 
     def on_config(self, config: MkDocsConfig) -> MkDocsConfig | None:
         message_file = self.config['messages_path']
-        if os.path.isfile(message_file) and os.path.exists(message_file):
-            self.process_document(message_file)
-        else:
+        tests_path = self.config['tests_root_path']
+
+        is_ok = True
+        if not os.path.isfile(message_file) or not os.path.exists(message_file):
+            is_ok = False
             log.warning("No gherkin results found in %s. Skipping plugin execution.", message_file)
 
+        if not os.path.isdir(tests_path) or not os.path.exists(tests_path):
+            is_ok = False
+            log.warning(
+                "Tests path not existing. Please set it to the location dir of your e2e tests. Skipping plugin execution")
+
+        if is_ok:
+            self.process_document(message_file)
+
     def on_page_markdown(self, markdown, page, config, files):
+        if self.results is None:
+            return
+
         message_file = self.config['messages_path']
         if not os.path.isfile(message_file) or not os.path.exists(message_file):
             return markdown
@@ -41,7 +55,7 @@ class GherkinPlugin(plugins.BasePlugin[GherkinPluginConfig]):
         docfile_path = pathlib.Path(page.file.abs_src_path)
 
         for test_case in self.results.test_cases:
-            if test_case.matches_uri(docfile_path):
+            if test_case.matches_uri(docfile_path, self.config["tests_root_path"]):
                 for n, line in enumerate(lines):
                     if "<" in line:
                         lines[n] = lines[n].replace("<", "&lt;")
@@ -65,7 +79,7 @@ class GherkinPlugin(plugins.BasePlugin[GherkinPluginConfig]):
 
     def add_attachments(self, docfile_path, lines):
         for test_case in self.results.test_cases:
-            if test_case.matches_uri(docfile_path):
+            if test_case.matches_uri(docfile_path, self.config["tests_root_path"]):
                 for step in test_case.steps:
                     for attachment in step.attachments:
                         lines[step.lines[0] - 1] += f"""

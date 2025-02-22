@@ -1,10 +1,12 @@
+import logging
 from pathlib import Path
 from typing import List
 
 from .gherkin_step import GherkinStep
 
+log = logging.getLogger(f"mkdocs.plugins.{__name__}")
 
-class GherkinTestCase():
+class GherkinTestCase:
 
     def __init__(self, id, pickle_id, steps: List[GherkinStep]):
         self.uri = None
@@ -73,26 +75,31 @@ class GherkinTestCase():
             return "SKIPPED"
 
         for step in self.steps:
-            if step.status() != "SKIPPED":
+            if step.status().lower() != "skipped":
                 all_skipped = False
-            if step.status() != "UNDEFINED":
+            if step.status().lower() != "undefined":
                 all_undefined = False
-            if step.status() == "FAILED":
+            if step.status().lower() == "failed":
                 has_failed = True
 
         if all_skipped:
-            result = "SKIPPED"
+            result = "skipped"
         elif all_undefined:
-            result = "UNDEFINED"
+            result = "undefined"
         elif has_failed:
-            result = "FAILED"
+            result = "failed"
         else:
-            result = "PASSED"
+            result = "passed"
 
         return result
 
-    def matches_uri(self, other: Path):
-        return Path(self.uri).resolve() == other.resolve()
+    def matches_uri(self, doc_page_path: Path, tests_root_path: str):
+        path = Path(tests_root_path) / Path(self.uri)
+        test_case_absolute_url = path.resolve()
+        doc_page_absolute_url = doc_page_path.resolve()
+
+        # log.info("MATCHING TEST-PAGE %s AND %s", test_case_absolute_url, doc_page_absolute_url)
+        return test_case_absolute_url == doc_page_absolute_url
 
     def set_uri(self, uri):
         self.uri = uri
@@ -101,4 +108,4 @@ class GherkinTestCase():
         self.name = name
 
     def __str__(self):
-        return f"GherkinTestCase[id={self.id}, name={self.name}]"
+        return f"GherkinTestCase[id={self.id}, name={self.name}, uri={self.uri}]"

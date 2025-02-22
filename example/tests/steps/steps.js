@@ -8,7 +8,7 @@ When('I eat {int} cucumbers', function (int) {
 });
 
 Then('I should have {int} cucumbers', function (int) {
-    if (int == 7) {
+    if (int === 7) {
         throw new Error("FAIL")
     }
 });

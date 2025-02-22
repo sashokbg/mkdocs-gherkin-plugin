@@ -9,7 +9,8 @@ nav:
 plugins:
   - gherkin-plugin:
       show_attachments: True
-      messages_path: "gherkin_messages.ndjson"
+      messages_path: "tests/reports/gherkin_messages.ndjson"
+      tests_root_path: "./tests"
 
 markdown_extensions:
   - admonition

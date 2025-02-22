@@ -1,14 +1,14 @@
-def format_status(status):
-    if status == "PASSED" or status == "PASSED":
+def format_status(status: str):
+    if status.lower() == "passed":
         return "✔"
 
-    if status == "FAILED" or status == "FAILED":
-        return "✖"
+    if status.lower() == "failed":
+        return "❌"
 
-    if status == "SKIPPED" or status == "SKIPPED":
-        return "Skipped"
+    if status.lower() == "skipped":
+        return "⏩"
 
-    if status == "UNDEFINED" or status == "UNDEFINED":
-        return "❔"
+    if status.lower() == "undefined":
+        return "❓"
 
     return status

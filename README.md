@@ -51,6 +51,8 @@ plugins:
 
 ## Configuration
 
+- **tests_root_path** - Required. The relative path of where the cucumber tests are located. Example "./tests-e2e"
+
 - **show_results** - Boolean value that controls if the test results are shown next to each feature and step. Defaults to True
 
 - **show_attachments** - Boolean value that controls if the file attachements are shown in the final result. Defaults to True
