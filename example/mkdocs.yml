@@ -6,6 +6,9 @@ nav:
   - "Template Feature": template.feature.md
   - "Undefined Feature": undefined.feature.md
 
+watch:
+  - tests/reports
+
 plugins:
   - gherkin-plugin:
       show_attachments: True
